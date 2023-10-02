@@ -2,6 +2,7 @@
 question1: .asciiz "What is your name Player X?\n"
 question2: .asciiz "What is your name Player O?\n"
 newLineCharacter: .asciiz "\n"
+boardLine: .asciiz "=====\n"
 playerName1: .space 20 # hopefully no one has more than 20 characters in their name.
 playerName2: .space 20
 greeting1: .asciiz "Hello "
@@ -92,10 +93,18 @@ printBoard:
 printBoardLoop:
 	beq $s1, 3, doNewLineForBoard
 	beq $s1, 6, doNewLineForBoard
+	beq $s1, 0, dontPrintAnythingAtBeginning
 	b dontDoNewLineForBoard
 doNewLineForBoard:
 	jal newLine
+	la $a0, boardLine
+	jal printString
+	b dontPrintAnythingAtBeginning
 dontDoNewLineForBoard:
+	li $a0, '|'
+	li $v0, 11
+	syscall
+dontPrintAnythingAtBeginning:
 	
 	# print cur number, X, or O pending on current value in board at index/counter.
 	lb $t1, board($s1)
