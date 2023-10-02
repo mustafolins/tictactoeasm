@@ -6,7 +6,7 @@ playerName1: .space 20 # hopefully no one has more than 20 characters in their n
 playerName2: .space 20
 greeting1: .asciiz "Hello "
 greeting2: .asciiz "It's nice to meet you.\n"
-turnMessage: .asciiz " turn\n"
+turnMessage: .asciiz "Select square "
 board: 
 	.byte 0
 	.byte 0
@@ -38,10 +38,15 @@ ticTacToe:
 	addiu $sp, $sp, -4
 	sw $ra, ($sp) # push ra to stack
 	
+	jal printBoard
+	
 	li $s7 0 # loop counter variable
 	li $s6 1 # cur player turn
 
 ticTacToeLoop:
+	# ask question to current player
+	la $a0, turnMessage
+	jal printString
 	beq $s6, 1, loadPlayerOneName
 	b loadPlayerTwoName
 loadPlayerOneName:
@@ -50,9 +55,6 @@ loadPlayerOneName:
 loadPlayerTwoName:
 	la $a0, playerName2
 askTurnQuestion:
-	# ask question
-	jal printString
-	la $a0, turnMessage
 	jal printString
 	
 	# get placement from user
@@ -64,7 +66,6 @@ askTurnQuestion:
 	sb $s6, board($t3)
 	
 	jal printBoard
-	jal newLine
 	
 	addi $s6, $s6, 1
 	beq $s6, 3, resetPlayer
@@ -85,10 +86,18 @@ printBoard:
 	addiu $sp, $sp, -4
 	sw $ra, ($sp) # push ra to stack
 	
-	li $s1, 0
-	li $s2, 9
+	li $s1, 0 # loop counter/index
+	li $s2, 9 # loop max
 	
 printBoardLoop:
+	beq $s1, 3, doNewLineForBoard
+	beq $s1, 6, doNewLineForBoard
+	b dontDoNewLineForBoard
+doNewLineForBoard:
+	jal newLine
+dontDoNewLineForBoard:
+	
+	# print cur number, X, or O pending on current value in board at index/counter.
 	lb $t1, board($s1)
 	beqz $t1, printCurrentNumber
 	beq $t1, 1, printX
@@ -121,6 +130,8 @@ printO:
 	b printBoardEndLoop
 
 printBoardEndLoop:
+	jal newLine
+	
 	lw $ra, ($sp) # pop ra from stack
 	addiu $sp, $sp, 4
 	jr $ra
